@@ -3,9 +3,7 @@ import {
   Get,
   Post,
   Body,
-  //Param,
-  UseInterceptors,
-  ClassSerializerInterceptor,
+  Param,
   NotFoundException,
   //HttpStatus,
 } from '@nestjs/common';
@@ -38,6 +36,22 @@ export class UsersController {
     }
 
     return plainToInstance(ReadUserDto, allUsers, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Get('search/:searchEmail')
+  async getUserByEmail(
+    @Param('searchEmail') searchString: string,
+  ): Promise<ReadUserDto> {
+    const userByEmail: User | undefined =
+      await this.usersService.findOneByEmail(searchString);
+
+    if (!userByEmail) {
+      throw new NotFoundException(`Erro: Email ${userByEmail} não cadastrado.`);
+    }
+
+    return plainToInstance(ReadUserDto, userByEmail, {
       excludeExtraneousValues: true,
     });
   }
