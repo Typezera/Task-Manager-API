@@ -9,6 +9,7 @@ import * as bcrypt from 'bcrypt';
 
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create_user_dto';
+import { UpdateUserDto } from './dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -65,5 +66,28 @@ export class UsersService {
       );
     }
     return user;
+  }
+
+  async update(id: string, updateUserDto: UpdateUserDto): Promise<User> {
+    const userToUpdate = await this.usersRepository.findOne({ where: { id } });
+
+    if (!userToUpdate) {
+      throw new NotFoundException(
+        `Usuário com o ID: ${id}, não foi encontrado`,
+      );
+    }
+
+    if (updateUserDto.password) {
+      const salt = await bcrypt.genSalt();
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, salt);
+    }
+
+    console.log(updateUserDto);
+
+    this.usersRepository.merge(userToUpdate, updateUserDto);
+
+    const updateUser = await this.usersRepository.save(userToUpdate);
+
+    return updateUser;
   }
 }

@@ -6,6 +6,7 @@ import {
   Param,
   NotFoundException,
   UseGuards,
+  Patch,
   //HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -16,6 +17,8 @@ import { JwtAuthGuard } from './../auth/jwt-auth.guard';
 import { Public } from 'src/common/decorators/public.decorator';
 import { plainToInstance } from 'class-transformer';
 import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { UpdateUserDto } from './dto/update-user.dto';
+import { IsSelfGuard } from 'src/auth/is-self.guard';
 
 // @UseInterceptors(ClassSerializerInterceptor)
 @ApiSecurity('access-token')
@@ -60,6 +63,19 @@ export class UsersController {
     }
 
     return plainToInstance(ReadUserDto, userByEmail, {
+      excludeExtraneousValues: true,
+    });
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, IsSelfGuard)
+  async updateUser(
+    @Param('id') id: string,
+    @Body() updateUserDto: UpdateUserDto,
+  ): Promise<ReadUserDto> {
+    const updatUser = await this.usersService.update(id, updateUserDto);
+
+    return plainToInstance(ReadUserDto, updatUser, {
       excludeExtraneousValues: true,
     });
   }
