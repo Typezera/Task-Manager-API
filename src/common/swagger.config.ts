@@ -14,7 +14,17 @@ export function setupSwagger(app: INestApplication): void {
       'Documentação da API de criação de tarefas, onde é possível um usuário criar a conta e logar e começar a fazer a gestão de suas tarefas.',
     )
     .setVersion('1.0')
-    //.addBearerAuth()
+    .addBearerAuth(
+      {
+        description: 'Entre com o token JWT: ',
+        name: 'Authorization',
+        bearerFormat: 'Bearer',
+        scheme: 'Bearer',
+        type: 'http',
+        in: 'Header',
+      },
+      'access-token',
+    )
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
