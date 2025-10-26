@@ -7,7 +7,9 @@ import {
   NotFoundException,
   UseGuards,
   Patch,
-  //HttpStatus,
+  Delete,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create_user_dto';
@@ -16,7 +18,12 @@ import { User } from './entities/user.entity';
 import { JwtAuthGuard } from './../auth/jwt-auth.guard';
 import { Public } from 'src/common/decorators/public.decorator';
 import { plainToInstance } from 'class-transformer';
-import { ApiSecurity, ApiTags } from '@nestjs/swagger';
+import {
+  ApiOperation,
+  ApiResponse,
+  ApiSecurity,
+  ApiTags,
+} from '@nestjs/swagger';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { IsSelfGuard } from 'src/auth/is-self.guard';
 
@@ -78,5 +85,20 @@ export class UsersController {
     return plainToInstance(ReadUserDto, updatUser, {
       excludeExtraneousValues: true,
     });
+  }
+
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiSecurity('access-token')
+  @UseGuards(JwtAuthGuard, IsSelfGuard)
+  @ApiOperation({ summary: 'Deleta o usuário logado com o ID fornecido' })
+  @ApiResponse({ status: 204, description: 'Usuario deletado com sucesso!' })
+  @ApiResponse({
+    status: 403,
+    description: 'Proibido (tentativa de deletar outro usuário)',
+  })
+  @ApiResponse({ status: 404, description: 'Usuário não encontrado!' })
+  async deleteUser(@Param('id') id: string): Promise<void> {
+    await this.usersService.delete(id);
   }
 }
